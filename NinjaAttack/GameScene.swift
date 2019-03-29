@@ -69,7 +69,11 @@ extension CGPoint {
 
 class GameScene: SKScene {
   let player = SKSpriteNode(imageNamed: "player")
-  
+  var monstersDestroyed = 0
+  let scorelabel = SKLabelNode(fontNamed: "Arial")
+//  scorelabel.position = CGPoint(x: size.width * 0.2, y: size.height * 0.5)
+  var score = String()
+
   override func didMove(to view: SKView) {
     backgroundColor = SKColor.white
     player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
@@ -82,7 +86,6 @@ class GameScene: SKScene {
           SKAction.wait(forDuration: 1.0)
           ])
     ))
-    
     let backgroundMusic = SKAudioNode(fileNamed: "background-music-aac.caf")
     backgroundMusic.autoplayLooped = true
     addChild(backgroundMusic)
@@ -97,27 +100,18 @@ class GameScene: SKScene {
   }
   
   func addMonsters() {
-    
     let monster = SKSpriteNode(imageNamed: "monster")
-    
     let actualY = random(min: monster.size.height/2, max: size.height - monster.size.height/2)
-    
     monster.position = CGPoint(x: size.width + monster.size.width/2, y: actualY)
-    
     addChild(monster)
-    
     monster.physicsBody = SKPhysicsBody(rectangleOf: monster.size)
     monster.physicsBody?.isDynamic = true
     monster.physicsBody?.categoryBitMask = PhysicsCategory.monster
     monster.physicsBody?.contactTestBitMask = PhysicsCategory.projectile
     monster.physicsBody?.collisionBitMask = PhysicsCategory.none
-    
     let actualDuration = random(min: CGFloat(2.0), max: CGFloat(4.0))
-    
     let actionMove = SKAction.move(to: CGPoint(x: -monster.size.width/2, y: actualY), duration: TimeInterval(actualDuration))
-    
     let actionMoveDone = SKAction.removeFromParent()
-    
     let loseAction = SKAction.run() { [weak self] in
       guard let `self` = self else { return }
       let reveal = SKTransition.flipHorizontal(withDuration: 0.5)
@@ -126,9 +120,6 @@ class GameScene: SKScene {
     }
     monster.run(SKAction.sequence([actionMove, loseAction, actionMoveDone]))
     }
-
-
-  }
   
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first else {
@@ -169,8 +160,15 @@ class GameScene: SKScene {
     print("Hit")
     projectile.removeFromParent()
     monster.removeFromParent()
-  }
-  
+    monstersDestroyed += 1
+    score = "\(monstersDestroyed)"
+    scorelabel.text = "Monsters Destroyed: " + score
+    if monstersDestroyed > 30 {
+      let reveal = SKTransition.flipHorizontal(withDuration: 0.5)
+      let gameOverScene = GameOverScene(size: self.size, won: true)
+      view?.presentScene(gameOverScene, transition: reveal)
+    }
+}
 }
 extension GameScene: SKPhysicsContactDelegate {
   
@@ -194,3 +192,4 @@ extension GameScene: SKPhysicsContactDelegate {
     }
   }
 }
+
