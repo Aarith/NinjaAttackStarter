@@ -69,7 +69,7 @@ extension CGPoint {
 
 
 class GameScene: SKScene {
-  let player = SKSpriteNode(imageNamed: "player")
+  let player = SKSpriteNode(imageNamed: "archer")
   var monstersDestroyed = 0
   var scoreLabel: SKLabelNode!
   
