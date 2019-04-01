@@ -67,17 +67,25 @@ extension CGPoint {
   }
 }
 
+
 class GameScene: SKScene {
   let player = SKSpriteNode(imageNamed: "player")
   var monstersDestroyed = 0
-  let scorelabel = SKLabelNode(fontNamed: "Arial")
-//  scorelabel.position = CGPoint(x: size.width * 0.2, y: size.height * 0.5)
-  var score = String()
+  var scoreLabel: SKLabelNode!
+  
+  
+  
 
   override func didMove(to view: SKView) {
     backgroundColor = SKColor.white
     player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
     addChild(player)
+    scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
+    scoreLabel.position = CGPoint(x: size.width * 0.2, y: size.height * 0.8)
+    scoreLabel.text = "Score = \(monstersDestroyed)"
+    scoreLabel.fontSize = 24
+    scoreLabel.fontColor = SKColor.black
+    addChild(scoreLabel)
     physicsWorld.gravity = .zero
     physicsWorld.contactDelegate = self
     run(SKAction.repeatForever(
@@ -89,6 +97,7 @@ class GameScene: SKScene {
     let backgroundMusic = SKAudioNode(fileNamed: "background-music-aac.caf")
     backgroundMusic.autoplayLooped = true
     addChild(backgroundMusic)
+    
   }
   
   func random() -> CGFloat {
@@ -161,8 +170,7 @@ class GameScene: SKScene {
     projectile.removeFromParent()
     monster.removeFromParent()
     monstersDestroyed += 1
-    score = "\(monstersDestroyed)"
-    scorelabel.text = "Monsters Destroyed: " + score
+    scoreLabel.text = "Score = \(monstersDestroyed)"
     if monstersDestroyed > 30 {
       let reveal = SKTransition.flipHorizontal(withDuration: 0.5)
       let gameOverScene = GameOverScene(size: self.size, won: true)
