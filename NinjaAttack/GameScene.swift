@@ -72,29 +72,36 @@ class GameScene: SKScene {
   let player = SKSpriteNode(imageNamed: "archer")
   var monstersDestroyed = 0
   var scoreLabel: SKLabelNode!
+  var backgroundimage: SKSpriteNode!
   
   
   
 
   override func didMove(to view: SKView) {
     backgroundColor = SKColor.white
-    player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
+    player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.2)
+    player.zPosition = 10
     addChild(player)
     scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
     scoreLabel.position = CGPoint(x: size.width * 0.2, y: size.height * 0.8)
     scoreLabel.text = "Score = \(monstersDestroyed)"
     scoreLabel.fontSize = 24
     scoreLabel.fontColor = SKColor.black
+    backgroundimage = SKSpriteNode(imageNamed: "background")
+    backgroundimage.position = CGPoint(x: frame.size.width * 0.5, y: frame.size.height * 0.5)
+    backgroundimage.size = CGSize(width: backgroundimage.size.width * 2, height: backgroundimage.size.height * 2)
+    backgroundimage.zPosition = -5
+    addChild(backgroundimage)
     addChild(scoreLabel)
     physicsWorld.gravity = .zero
     physicsWorld.contactDelegate = self
     run(SKAction.repeatForever(
         SKAction.sequence([
-          SKAction.run(addMonsters),
-          SKAction.wait(forDuration: 1.0)
+          SKAction.run(addMonsters), SKAction.run(addMonsters2),
+          SKAction.wait(forDuration: 1.2)
           ])
     ))
-    let backgroundMusic = SKAudioNode(fileNamed: "background-music-aac.caf")
+    let backgroundMusic = SKAudioNode(fileNamed: "026-Strike.mp3")
     backgroundMusic.autoplayLooped = true
     addChild(backgroundMusic)
     
@@ -110,7 +117,7 @@ class GameScene: SKScene {
   
   func addMonsters() {
     let monster = SKSpriteNode(imageNamed: "monster")
-    let actualY = random(min: monster.size.height/2, max: size.height - monster.size.height/2)
+    let actualY = random(min: monster.size.height/2, max: size.height * 0.33)
     monster.position = CGPoint(x: size.width + monster.size.width/2, y: actualY)
     addChild(monster)
     monster.physicsBody = SKPhysicsBody(rectangleOf: monster.size)
@@ -118,7 +125,7 @@ class GameScene: SKScene {
     monster.physicsBody?.categoryBitMask = PhysicsCategory.monster
     monster.physicsBody?.contactTestBitMask = PhysicsCategory.projectile
     monster.physicsBody?.collisionBitMask = PhysicsCategory.none
-    let actualDuration = random(min: CGFloat(2.0), max: CGFloat(4.0))
+    let actualDuration = random(min: CGFloat(5.0), max: CGFloat(12.0))
     let actionMove = SKAction.move(to: CGPoint(x: -monster.size.width/2, y: actualY), duration: TimeInterval(actualDuration))
     let actionMoveDone = SKAction.removeFromParent()
     let loseAction = SKAction.run() { [weak self] in
@@ -130,11 +137,33 @@ class GameScene: SKScene {
     monster.run(SKAction.sequence([actionMove, loseAction, actionMoveDone]))
     }
   
+  func addMonsters2() {
+    let monster = SKSpriteNode(imageNamed: "monster2")
+    let actualY = random(min: monster.size.height/2, max: size.height - monster.size.height/2)
+    monster.position = CGPoint(x: size.width + monster.size.width/2, y: actualY)
+    addChild(monster)
+    monster.physicsBody = SKPhysicsBody(rectangleOf: monster.size)
+    monster.physicsBody?.isDynamic = true
+    monster.physicsBody?.categoryBitMask = PhysicsCategory.monster
+    monster.physicsBody?.contactTestBitMask = PhysicsCategory.projectile
+    monster.physicsBody?.collisionBitMask = PhysicsCategory.none
+    let actualDuration = random(min: CGFloat(4), max: CGFloat(10))
+    let actionMove = SKAction.move(to: CGPoint(x: -monster.size.width/2, y: actualY), duration: TimeInterval(actualDuration))
+    let actionMoveDone = SKAction.removeFromParent()
+    let loseAction = SKAction.run() { [weak self] in
+      guard let `self` = self else { return }
+      let reveal = SKTransition.flipHorizontal(withDuration: 0.5)
+      let gameOverScene = GameOverScene(size: self.size, won: false)
+      self.view?.presentScene(gameOverScene, transition: reveal)
+    }
+    monster.run(SKAction.sequence([actionMove, loseAction, actionMoveDone]))
+  }
+  
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first else {
       return
     }
-    run(SKAction.playSoundFileNamed("pew-pew-lei.caf", waitForCompletion: false))
+    run(SKAction.playSoundFileNamed("arrowshot.mp3", waitForCompletion: false))
     
     let touchLocation = touch.location(in: self)
     
@@ -160,7 +189,7 @@ class GameScene: SKScene {
     
     let realDest = shootAmount + projectile.position
     
-    let actionMove = SKAction.move(to: realDest, duration: 2.0)
+    let actionMove = SKAction.move(to: realDest, duration: 1.4)
     let actionMoveDone = SKAction.removeFromParent()
     projectile.run(SKAction.sequence([actionMove, actionMoveDone]))
   }
@@ -171,7 +200,7 @@ class GameScene: SKScene {
     monster.removeFromParent()
     monstersDestroyed += 1
     scoreLabel.text = "Score = \(monstersDestroyed)"
-    if monstersDestroyed > 30 {
+    if monstersDestroyed >= 100 {
       let reveal = SKTransition.flipHorizontal(withDuration: 0.5)
       let gameOverScene = GameOverScene(size: self.size, won: true)
       view?.presentScene(gameOverScene, transition: reveal)
